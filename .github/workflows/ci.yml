@@ -101,7 +101,7 @@ jobs:
         with:
           swap-size-gb: 4
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup NodeJS
         uses: ./.github/actions/setup-node
@@ -139,7 +139,7 @@ jobs:
           echo "github.event_name: ${{ github.event_name }}"
           cat $GITHUB_EVENT_PATH
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/meteor-build
         with:
@@ -163,7 +163,7 @@ jobs:
           echo "github.event_name: ${{ github.event_name }}"
           cat $GITHUB_EVENT_PATH
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/meteor-build
         with:
@@ -188,7 +188,7 @@ jobs:
         platform: ['official', 'alpine']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # we only build and publish the actual docker images if not a PR from a fork
       - uses: ./.github/actions/build-docker
@@ -217,7 +217,7 @@ jobs:
         platform: ['official', 'alpine']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/build-docker
         with:
@@ -416,7 +416,7 @@ jobs:
     needs: [build, checks, release-versions]
     if: github.event_name == 'release' || github.ref == 'refs/heads/develop'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Restore build
         uses: actions/download-artifact@v3
