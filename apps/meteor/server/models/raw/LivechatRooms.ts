@@ -3,7 +3,6 @@ import type {
 	RocketChatRecordDeleted,
 	IOmnichannelRoomClosingInfo,
 	DeepWritable,
-	ISetting,
 	IMessage,
 	ILivechatPriority,
 	IOmnichannelServiceLevelAgreements,
@@ -1130,8 +1129,8 @@ export class LivechatRoomsRaw extends BaseRaw<IOmnichannelRoom> implements ILive
 		const match: Document = {
 			$match: {
 				'v._id': visitorId,
-				...(open !== undefined && { open: { $exists: open } }),
-				...(served !== undefined && { servedBy: { $exists: served } }),
+				...(open !== undefined && !open && { closedAt: { $exists: true } }),
+				...(served !== undefined && served && { servedBy: { $exists: served } }),
 				...(source && {
 					$or: [{ 'source.type': new RegExp(escapeRegExp(source), 'i') }, { 'source.alias': new RegExp(escapeRegExp(source), 'i') }],
 				}),
@@ -1853,18 +1852,7 @@ export class LivechatRoomsRaw extends BaseRaw<IOmnichannelRoom> implements ILive
 	}
 
 	async updateRoomCount() {
-		const query: Filter<ISetting> = {
-			_id: 'Livechat_Room_Count',
-		};
-
-		const update: UpdateFilter<ISetting> = {
-			$inc: {
-				// @ts-expect-error - Caused by `OnlyFieldsOfType` on mongo which excludes `SettingValue` from $inc
-				value: 1,
-			},
-		};
-
-		const livechatCount = await Settings.findOneAndUpdate(query, update, { returnDocument: 'after' });
+		const livechatCount = await Settings.incrementValueById('Livechat_Room_Count', 1, { returnDocument: 'after' });
 		return livechatCount.value;
 	}
 
@@ -2262,6 +2250,17 @@ export class LivechatRoomsRaw extends BaseRaw<IOmnichannelRoom> implements ILive
 			],
 			{ readPreference: readSecondaryPreferred() },
 		);
+	}
+
+	countOpenByAgent(userId: string, extraQuery: Filter<IOmnichannelRoom> = {}) {
+		const query: Filter<IOmnichannelRoom> = {
+			't': 'l',
+			'open': true,
+			'servedBy._id': userId,
+			...extraQuery,
+		};
+
+		return this.col.countDocuments(query);
 	}
 
 	findOpenByAgent(userId: string, extraQuery: Filter<IOmnichannelRoom> = {}) {

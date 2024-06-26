@@ -1,12 +1,10 @@
 import { expect } from 'chai';
-import { before, describe, it } from 'mocha';
+import { after, before, describe, it } from 'mocha';
 import type { Response } from 'supertest';
 
-import { getCredentials, api, request, credentials } from '../../data/api-data.js';
+import { getCredentials, api, request, credentials } from '../../data/api-data';
 
-describe('[Roles]', function () {
-	this.retries(0);
-
+describe('[Roles]', () => {
 	const isEnterprise = Boolean(process.env.IS_EE);
 
 	before((done) => getCredentials(done));
@@ -82,6 +80,15 @@ describe('[Roles]', function () {
 					expect(res.body.role).to.have.property('name', testRoleName);
 					testRoleId = res.body.role._id;
 				});
+		});
+
+		after(async () => {
+			if (!isEnterprise) {
+				return;
+			}
+			await request.post(api('roles.delete')).set(credentials).send({
+				roleId: testRoleId,
+			});
 		});
 
 		it('should throw an error when not running EE to update a role', async function () {
