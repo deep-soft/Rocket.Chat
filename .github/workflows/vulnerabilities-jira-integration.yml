@@ -1,7 +1,6 @@
 name: Github vulnerabilities and jira board integration
 
 on:
-  workflow_dispatch:
   schedule:
     - cron: '0 1 * * *'
       
