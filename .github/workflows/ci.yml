@@ -75,7 +75,7 @@ jobs:
 
       - id: docker
         run: |
-          if [[ '${{ github.event_name }}' == 'pull_request' ]] || [[ '${{ github.event_name }}' == 'workflow_dispatch' ]]; then
+          if [[ '${{ github.event_name }}' == 'pull_request' ]]; then
             DOCKER_TAG="pr-${{ github.event.number }}"
           else
             DOCKER_TAG="gh-${{ github.run_id }}"
