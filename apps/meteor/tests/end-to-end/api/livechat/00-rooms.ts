@@ -689,6 +689,25 @@ describe('LIVECHAT - rooms', () => {
 				expect(latestRoom).to.not.have.property('pdfTranscriptFileId');
 			},
 		);
+
+		describe('Special case: visitors closing is disabled', () => {
+			before(async () => {
+				await updateSetting('Omnichannel_allow_visitors_to_close_conversation', false);
+			});
+			after(async () => {
+				await updateSetting('Omnichannel_allow_visitors_to_close_conversation', true);
+			});
+			it('should not allow visitor to close a conversation', async () => {
+				const { room, visitor } = await startANewLivechatRoomAndTakeIt();
+				await request
+					.post(api('livechat/room.close'))
+					.send({
+						token: visitor.token,
+						rid: room._id,
+					})
+					.expect(400);
+			});
+		});
 	});
 
 	describe('livechat/room.forward', () => {
@@ -2557,15 +2576,11 @@ describe('LIVECHAT - rooms', () => {
 			const { _id } = await createLivechatRoom(visitor.token);
 			// First, request transcript with livechat:requestTranscript method
 			await request
-				.post(methodCall('livechat:requestTranscript'))
+				.post(api(`livechat/transcript/${_id}`))
 				.set(credentials)
 				.send({
-					message: JSON.stringify({
-						method: 'livechat:requestTranscript',
-						params: [_id, 'test@test.com', 'Transcript of your omnichannel conversation'],
-						id: 'id',
-						msg: 'method',
-					}),
+					email: 'test@test.com',
+					subject: 'Transcript of your omnichannel conversation',
 				})
 				.expect(200);
 
