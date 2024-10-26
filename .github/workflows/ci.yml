@@ -2,13 +2,13 @@ name: CI
 
 on:
   workflow_dispatch:
-#  release:
-#    types: [published]
-#  pull_request:
-#    branches: '**'
-#  push:
-#    branches:
-#      - develop
+  release:
+    types: [published]
+  pull_request:
+    branches: '**'
+  push:
+    branches:
+      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
