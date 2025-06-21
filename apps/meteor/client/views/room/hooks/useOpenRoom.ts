@@ -1,16 +1,16 @@
-import type { IRoom, RoomType } from '@rocket.chat/core-typings';
+import { isPublicRoom, type IRoom, type RoomType } from '@rocket.chat/core-typings';
 import { useMethod, usePermission, useRoute, useSetting, useUser } from '@rocket.chat/ui-contexts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { useOpenRoomMutation } from './useOpenRoomMutation';
 import { Rooms } from '../../../../app/models/client';
 import { roomFields } from '../../../../lib/publishFields';
-import { omit } from '../../../../lib/utils/omit';
 import { NotAuthorizedError } from '../../../lib/errors/NotAuthorizedError';
 import { NotSubscribedToRoomError } from '../../../lib/errors/NotSubscribedToRoomError';
 import { OldUrlRoomError } from '../../../lib/errors/OldUrlRoomError';
 import { RoomNotFoundError } from '../../../lib/errors/RoomNotFoundError';
+import { roomsQueryKeys } from '../../../lib/queryKeys';
 
 export function useOpenRoom({ type, reference }: { type: RoomType; reference: string }) {
 	const user = useUser();
@@ -21,8 +21,6 @@ export function useOpenRoom({ type, reference }: { type: RoomType; reference: st
 	const directRoute = useRoute('direct');
 	const openRoom = useOpenRoomMutation();
 
-	const unsubscribeFromRoomOpenedEvent = useRef<() => void>(() => undefined);
-
 	const result = useQuery({
 		// we need to add uid and username here because `user` is not loaded all at once (see UserProvider -> Meteor.user())
 		queryKey: ['rooms', { reference, type }, { uid: user?._id, username: user?.username }] as const,
@@ -30,6 +28,10 @@ export function useOpenRoom({ type, reference }: { type: RoomType; reference: st
 		queryFn: async (): Promise<{ rid: IRoom['_id'] }> => {
 			if ((user && !user.username) || (!user && !allowAnonymousRead)) {
 				throw new NotAuthorizedError();
+			}
+
+			if (!reference || !type) {
+				throw new RoomNotFoundError(undefined, { type, reference });
 			}
 
 			let roomData;
@@ -85,15 +87,11 @@ export function useOpenRoom({ type, reference }: { type: RoomType; reference: st
 			}
 
 			const { RoomManager } = await import('../../../lib/RoomManager');
-			const { fireGlobalEvent } = await import('../../../lib/utils/fireGlobalEvent');
-
-			unsubscribeFromRoomOpenedEvent.current();
-			unsubscribeFromRoomOpenedEvent.current = RoomManager.once('opened', () => fireGlobalEvent('room-opened', omit(room, 'usernames')));
 
 			const sub = Subscriptions.findOne({ rid: room._id });
 
 			// if user doesn't exist at this point, anonymous read is enabled, otherwise an error would have been thrown
-			if (user && !sub && !hasPreviewPermission) {
+			if (user && !sub && !hasPreviewPermission && isPublicRoom(room)) {
 				throw new NotSubscribedToRoomError(undefined, { rid: room._id });
 			}
 
@@ -122,7 +120,7 @@ export function useOpenRoom({ type, reference }: { type: RoomType; reference: st
 			if (['l', 'v'].includes(type) && error instanceof RoomNotFoundError) {
 				Rooms.remove(reference);
 				queryClient.removeQueries({ queryKey: ['rooms', reference] });
-				queryClient.removeQueries({ queryKey: ['/v1/rooms.info', reference] });
+				queryClient.removeQueries({ queryKey: roomsQueryKeys.info(reference) });
 			}
 		}
 	}, [error, queryClient, reference, type]);

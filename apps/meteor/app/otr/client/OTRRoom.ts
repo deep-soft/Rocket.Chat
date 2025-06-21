@@ -1,4 +1,4 @@
-import type { IRoom, IMessage, IUser } from '@rocket.chat/core-typings';
+import type { IRoom, IMessage, IUser, UserPresence } from '@rocket.chat/core-typings';
 import { UserStatus } from '@rocket.chat/core-typings';
 import { Random } from '@rocket.chat/random';
 import EJSON from 'ejson';
@@ -8,7 +8,6 @@ import { Tracker } from 'meteor/tracker';
 
 import GenericModal from '../../../client/components/GenericModal';
 import { imperativeModal } from '../../../client/lib/imperativeModal';
-import type { UserPresence } from '../../../client/lib/presence';
 import { Presence } from '../../../client/lib/presence';
 import { dispatchToastMessage } from '../../../client/lib/toast';
 import { getUidDirectMessage } from '../../../client/lib/utils/getUidDirectMessage';
@@ -181,7 +180,9 @@ export class OTRRoom implements IOTRRoom {
 	}
 
 	deleteOTRMessages(): void {
-		Messages.remove({ t: { $in: ['otr', 'otr-ack', ...Object.values(otrSystemMessages)] }, rid: this._roomId });
+		Messages.state.remove(
+			(record) => record.rid === this._roomId && !!record.t && ['otr', 'otr-ack', ...Object.values(otrSystemMessages)].includes(record.t),
+		);
 	}
 
 	end(): void {
