@@ -2,6 +2,8 @@ export interface IOutboundMessage {
 	to: string;
 	type: 'template';
 	templateProviderPhoneNumber: string;
+	agentId?: string;
+	departmentId?: string;
 	template: {
 		name: string;
 		language: {
@@ -14,12 +16,12 @@ export interface IOutboundMessage {
 	};
 }
 
-type TemplateComponent = {
+export type TemplateComponent = {
 	type: 'header' | 'body' | 'footer' | 'button';
 	parameters: TemplateParameter[];
 };
 
-type TemplateParameter =
+export type TemplateParameter =
 	| {
 			type: 'text';
 			text: string;
@@ -48,4 +50,24 @@ type TemplateParameter =
 	| {
 			type: 'media';
 			link: string;
+			format: 'image' | 'document' | 'video';
+	  }
+	| {
+			type: 'document';
+			document: {
+				link: string;
+				filename: string;
+			};
+	  }
+	| {
+			type: 'video';
+			video: {
+				link: string;
+			};
+	  }
+	| {
+			type: 'image';
+			image: {
+				link: string;
+			};
 	  };

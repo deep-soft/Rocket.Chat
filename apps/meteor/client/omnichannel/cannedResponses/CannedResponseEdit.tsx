@@ -6,7 +6,6 @@ import { useId, memo, useCallback } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import CannedResponseForm from './components/CannedResponseForm';
-import { useRemoveCannedResponse } from './useRemoveCannedResponse';
 import { Page, PageHeader, PageScrollableContentWithShadow, PageFooter } from '../../components/Page';
 
 export type CannedResponseEditFormData = {
@@ -21,6 +20,7 @@ export type CannedResponseEditFormData = {
 type CannedResponseEditProps = {
 	cannedResponseData?: Serialized<IOmnichannelCannedResponse>;
 	departmentData?: Serialized<ILivechatDepartment>;
+	onDelete?: () => void;
 };
 
 const getInitialData = (cannedResponseData: Serialized<IOmnichannelCannedResponse> | undefined) => ({
@@ -32,7 +32,7 @@ const getInitialData = (cannedResponseData: Serialized<IOmnichannelCannedRespons
 	departmentId: cannedResponseData?.departmentId || '',
 });
 
-const CannedResponseEdit = ({ cannedResponseData }: CannedResponseEditProps) => {
+const CannedResponseEdit = ({ cannedResponseData, onDelete }: CannedResponseEditProps) => {
 	const t = useTranslation();
 	const router = useRouter();
 	const dispatchToastMessage = useToastMessageDispatch();
@@ -47,8 +47,6 @@ const CannedResponseEdit = ({ cannedResponseData }: CannedResponseEditProps) => 
 		reset,
 		formState: { isDirty },
 	} = methods;
-
-	const handleDelete = useRemoveCannedResponse();
 
 	const handleSave = useCallback(
 		async ({ departmentId, ...data }: CannedResponseEditFormData) => {
@@ -77,12 +75,12 @@ const CannedResponseEdit = ({ cannedResponseData }: CannedResponseEditProps) => 
 	return (
 		<Page>
 			<PageHeader
-				title={cannedResponseData?._id ? t('Edit_CannedResponse') : t('New_CannedResponse')}
+				title={cannedResponseData?._id ? t('Edit_Canned_Response') : t('New_CannedResponse')}
 				onClickBack={() => router.navigate('/omnichannel/canned-responses')}
 			>
 				{cannedResponseData?._id && (
 					<ButtonGroup>
-						<Button danger onClick={() => handleDelete(cannedResponseData._id)}>
+						<Button danger onClick={onDelete}>
 							{t('Delete')}
 						</Button>
 					</ButtonGroup>

@@ -55,8 +55,12 @@ export class HomeOmnichannelContent extends HomeContent {
 		return this.page.locator('[data-qa-id="ToolBoxAction-user"]');
 	}
 
+	get contactContextualBar() {
+		return this.page.getByRole('dialog', { name: 'Contact' });
+	}
+
 	get infoContactEmail(): Locator {
-		return this.page.getByRole('dialog').locator('p[data-type="email"]');
+		return this.contactContextualBar.getByRole('list', { name: 'Email' }).getByRole('listitem').first().locator('p');
 	}
 
 	get btnReturn(): Locator {
@@ -83,5 +87,12 @@ export class HomeOmnichannelContent extends HomeContent {
 		await this.btnCloseChat.click();
 		await this.closeChatModal.inputComment.fill('any_comment');
 		await this.closeChatModal.btnConfirm.click();
+	}
+
+	async useCannedResponse(cannedResponseName: string): Promise<void> {
+		await this.inputMessage.pressSequentially('!');
+		await this.page.locator('[role="menu"][name="ComposerBoxPopup"]').waitFor({ state: 'visible' });
+		await this.inputMessage.pressSequentially(cannedResponseName);
+		await this.page.keyboard.press('Enter');
 	}
 }

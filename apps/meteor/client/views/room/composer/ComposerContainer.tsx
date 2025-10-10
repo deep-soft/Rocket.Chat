@@ -1,4 +1,4 @@
-import { isOmnichannelRoom, isRoomFederated, isVoipRoom } from '@rocket.chat/core-typings';
+import { isOmnichannelRoom, isRoomFederated, isRoomNativeFederated, isVoipRoom } from '@rocket.chat/core-typings';
 import { usePermission } from '@rocket.chat/ui-contexts';
 import type { ReactElement } from 'react';
 import { memo } from 'react';
@@ -8,6 +8,7 @@ import ComposerAnonymous from './ComposerAnonymous';
 import ComposerArchived from './ComposerArchived';
 import ComposerBlocked from './ComposerBlocked';
 import ComposerFederation from './ComposerFederation';
+import ComposerFederationInvalidVersion from './ComposerFederation/ComposerFederationInvalidVersion';
 import ComposerJoinWithPassword from './ComposerJoinWithPassword';
 import type { ComposerMessageProps } from './ComposerMessage';
 import ComposerMessage from './ComposerMessage';
@@ -32,11 +33,13 @@ const ComposerContainer = ({ children, ...props }: ComposerMessageProps): ReactE
 	const isAnonymous = useMessageComposerIsAnonymous();
 	const isSelectingMessages = useIsSelecting();
 	const isBlockedOrBlocker = useMessageComposerIsBlocked({ subscription: props.subscription });
-	const isArchived = useMessageComposerIsArchived(room._id, props.subscription);
-	const isReadOnly = useMessageComposerIsReadOnly(room._id);
+	const isArchived = useMessageComposerIsArchived(room, props.subscription);
+	const isReadOnly = useMessageComposerIsReadOnly(room);
 
 	const isOmnichannel = isOmnichannelRoom(room);
 	const isFederation = isRoomFederated(room);
+
+	const isFederationBlocked = !isRoomNativeFederated(room);
 	const isVoip = isVoipRoom(room);
 
 	const [isAirGappedRestricted] = useAirGappedRestriction();
@@ -54,6 +57,10 @@ const ComposerContainer = ({ children, ...props }: ComposerMessageProps): ReactE
 	}
 
 	if (isFederation) {
+		if (isFederationBlocked) {
+			return <ComposerFederationInvalidVersion />;
+		}
+
 		return <ComposerFederation {...props} />;
 	}
 

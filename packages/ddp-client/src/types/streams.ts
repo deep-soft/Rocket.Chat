@@ -24,7 +24,9 @@ import type {
 	LicenseLimitKind,
 	ICustomUserStatus,
 	IWebdavAccount,
+	MessageAttachment,
 } from '@rocket.chat/core-typings';
+import type { ServerMediaSignal } from '@rocket.chat/media-signaling';
 import type * as UiKit from '@rocket.chat/ui-kit';
 
 type ClientAction = 'inserted' | 'updated' | 'removed' | 'changed';
@@ -56,7 +58,15 @@ export interface StreamerEvents {
 					users: string[];
 					ids?: string[]; // message ids have priority over ts
 					showDeletedStatus?: boolean;
-				},
+				} & (
+					| {
+							filesOnly: true;
+							replaceFileAttachmentsWith?: MessageAttachment;
+					  }
+					| {
+							filesOnly?: false;
+					  }
+				),
 			];
 		},
 		{ key: `${string}/deleteMessage`; args: [{ _id: IMessage['_id'] }] },
@@ -185,6 +195,7 @@ export interface StreamerEvents {
 			key: `${string}/video-conference`;
 			args: [{ action: string; params: { callId: VideoConference['_id']; uid: IUser['_id']; rid: IRoom['_id'] } }];
 		},
+		{ key: `${string}/media-signal`; args: [ServerMediaSignal] },
 		{ key: `${string}/userData`; args: [IUserDataEvent] },
 		{ key: `${string}/updateInvites`; args: [unknown] },
 		{ key: `${string}/departmentAgentData`; args: [unknown] },

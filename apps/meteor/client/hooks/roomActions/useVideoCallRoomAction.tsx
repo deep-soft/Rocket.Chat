@@ -50,7 +50,7 @@ export const useVideoCallRoomAction = () => {
 
 	const visible = groups.length > 0;
 	const allowed = visible && permittedToCallManagement && (!user?.username || !room.muted?.includes(user.username)) && !ownUser;
-	const disabled = federated || (!!room.ro && !permittedToPostReadonly);
+	const disabled = federated || (!!room.ro && !permittedToPostReadonly) || room.archived;
 	const tooltip = disabled ? t('core.Video_Call_unavailable_for_this_type_of_room') : '';
 
 	const handleOpenVideoConf = useEffectEvent(async () => {
@@ -77,7 +77,7 @@ export const useVideoCallRoomAction = () => {
 			icon: 'video',
 			featured: true,
 			action: handleOpenVideoConf,
-			order: -1,
+			order: 1,
 			groups,
 			disabled,
 			tooltip,

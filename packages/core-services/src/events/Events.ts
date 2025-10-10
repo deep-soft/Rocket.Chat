@@ -34,7 +34,9 @@ import type {
 	ICustomUserStatus,
 	IWebdavAccount,
 	IOTRMessage,
+	MessageAttachment,
 } from '@rocket.chat/core-typings';
+import type { ClientMediaSignalBody, ServerMediaSignal } from '@rocket.chat/media-signaling';
 import type * as UiKit from '@rocket.chat/ui-kit';
 
 import type { AutoUpdateRecord } from '../types/IMeteor';
@@ -104,7 +106,15 @@ export type EventSignatures = {
 			users: string[];
 			ids?: string[]; // message ids have priority over ts
 			showDeletedStatus?: boolean;
-		},
+		} & (
+			| {
+					filesOnly: true;
+					replaceFileAttachmentsWith?: MessageAttachment;
+			  }
+			| {
+					filesOnly?: false;
+			  }
+		),
 	): void;
 	'notify.deleteCustomSound'(data: { soundData: ICustomSound }): void;
 	'notify.updateCustomSound'(data: { soundData: ICustomSound }): void;
@@ -131,6 +141,7 @@ export type EventSignatures = {
 	): void;
 	'user.deleteCustomStatus'(userStatus: Omit<ICustomUserStatus, '_updatedAt'>): void;
 	'user.forceLogout': (uid: string) => void;
+	'user.media-signal'(data: { userId: IUser['_id']; signal: ServerMediaSignal }): void;
 	'user.nameChanged'(user: Pick<IUser, '_id' | 'name' | 'username'>): void;
 	'user.realNameChanged'(user: Partial<IUser>): void;
 	'user.roleUpdate'(update: {
@@ -140,7 +151,7 @@ export type EventSignatures = {
 		scope?: string;
 	}): void;
 	'user.updateCustomStatus'(userStatus: Omit<ICustomUserStatus, '_updatedAt'>): void;
-	'user.typing'(data: { user: Partial<IUser>; isTyping: boolean; roomId: string }): void;
+	'user.activity'(data: { user: string; isTyping: boolean; roomId: string }): void;
 	'user.video-conference'(data: {
 		userId: IUser['_id'];
 		action: string;
@@ -301,4 +312,5 @@ export type EventSignatures = {
 	'actions.changed'(): void;
 	'otrMessage'(data: { roomId: string; message: IMessage; room: IRoom; user: IUser }): void;
 	'otrAckUpdate'(data: { roomId: string; acknowledgeMessage: IOTRMessage }): void;
+	'media-call.updated'(data: { callId: string; dtmf?: ClientMediaSignalBody<'dtmf'> }): void;
 };

@@ -1,4 +1,4 @@
-FROM node:22.14.0-alpine3.20
+FROM node:22.16.0-alpine3.21
 
 ARG SERVICE
 
@@ -19,6 +19,9 @@ COPY ./packages/core-typings/dist packages/core-typings/dist
 
 COPY ./packages/rest-typings/package.json packages/rest-typings/package.json
 COPY ./packages/rest-typings/dist packages/rest-typings/dist
+
+COPY ./packages/media-signaling/package.json packages/media-signaling/package.json
+COPY ./packages/media-signaling/dist packages/media-signaling/dist
 
 COPY ./packages/message-parser/package.json packages/message-parser/package.json
 COPY ./packages/message-parser/dist packages/message-parser/dist
@@ -60,6 +63,9 @@ COPY ./packages/tracing/dist packages/tracing/dist
 
 COPY ./packages/ui-kit/package.json packages/ui-kit/package.json
 COPY ./packages/ui-kit/dist packages/ui-kit/dist
+
+COPY ./packages/http-router/package.json packages/http-router/package.json
+COPY ./packages/http-router/dist packages/http-router/dist
 
 COPY ./ee/apps/${SERVICE}/dist .
 
